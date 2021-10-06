@@ -1,23 +1,26 @@
 package com.douay.tictactoe
 
-class GridValidator :  IGridValidator {
+class GridValidator : IGridValidator {
 
-    override fun isSuccess(input: List<List<State?>>): Boolean {
+    override fun isSuccess(input: List<List<State?>>): GridResult {
 
-        if (checkRows(input)) return true
+        if (checkRows(input)
+            || checkColumns(input)
+            || checkFirstDiagonal(input)
+            || checkSecondDiagonal(input)
+        ) return GridResult.VICTORY
 
-        if (checkColumns(input)) return true
+        if (isFull(input)) {
+            return GridResult.DRAW;
+        }
 
-        if (checkFirstDiagonal(input)) return true
-
-        if (checkSecondDiagonal(input)) return true
-
-        return false
+        return GridResult.IN_PROGRESS
     }
 
     override fun checkFirstDiagonal(input: List<List<State?>>): Boolean {
         val diagonal = input.reduceIndexed { index, list,
-                                             acc -> acc + list.getOrNull(index)
+                                             acc ->
+            acc + list.getOrNull(index)
         }
         return isConsistent(diagonal)
     }
@@ -33,6 +36,13 @@ class GridValidator :  IGridValidator {
             if (isConsistent(column)) return true
         }
         return false
+    }
+
+    fun isFull(input: List<List<State?>>): Boolean {
+        for (i in 0..input.size) {
+            if (input.getOrNull(i)?.contains(null) == true) return false
+        }
+        return true
     }
 
     override fun checkRows(input: List<List<State?>>): Boolean {

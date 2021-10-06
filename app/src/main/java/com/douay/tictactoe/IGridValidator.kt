@@ -1,7 +1,7 @@
 package com.douay.tictactoe
 
 interface IGridValidator {
-    fun isSuccess(input: List<List<State?>>): Boolean
+    fun isSuccess(input: List<List<State?>>): GridResult
     fun checkFirstDiagonal(input: List<List<State?>>): Boolean
     fun checkSecondDiagonal(input: List<List<State?>>): Boolean
     fun checkColumns(input: List<List<State?>>): Boolean
