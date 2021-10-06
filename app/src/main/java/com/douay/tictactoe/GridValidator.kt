@@ -2,64 +2,35 @@ package com.douay.tictactoe
 
 class GridValidator : IGridValidator {
 
-    override fun isSuccess(input: List<List<State?>>): GridResult {
-
-        if (checkRows(input)
-            || checkColumns(input)
-            || checkFirstDiagonal(input)
-            || checkSecondDiagonal(input)
-        ) return GridResult.VICTORY
-
-        if (isFull(input)) {
-            return GridResult.DRAW;
-        }
-
-        return GridResult.IN_PROGRESS
-    }
-
-    override fun checkFirstDiagonal(input: List<List<State?>>): Boolean {
-        val diagonal = input.reduceIndexed { index, list,
-                                             acc ->
-            acc + list.getOrNull(index)
-        }
-        return isConsistent(diagonal)
-    }
-
-    override fun checkSecondDiagonal(input: List<List<State?>>): Boolean {
-        val diagonal = input.reduceRightIndexed { index, list, acc -> acc + list.getOrNull(index) }
-        return isConsistent(diagonal)
-    }
-
-    override fun checkColumns(input: List<List<State?>>): Boolean {
-        for (j in 0..input.size) {
-            val column = input.map { row -> row.getOrNull(j) }
-            if (isConsistent(column)) return true
+    override fun checkColumns(input: List<State>): Boolean {
+        for (j in 0..2) {
+            val column = input.windowed(3, 3).mapNotNull { row -> row.getOrNull(j) }
+            if (isValid(column)) return true
         }
         return false
     }
 
-    fun isFull(input: List<List<State?>>): Boolean {
-        for (i in 0..input.size) {
-            if (input.getOrNull(i)?.contains(null) == true) return false
-        }
-        return true
+    override fun isFull(input: List<State>): Boolean {
+        return !input.contains(State.UNDEFINED)
     }
 
-    override fun checkRows(input: List<List<State?>>): Boolean {
-        input.forEach {
-            if (isConsistent(it)) return true
+    override fun checkRows(input: List<State>): Boolean {
+        input.windowed(3, 3).forEach {
+            if (isValid(it)) return true
         }
         return false
     }
 
-    private fun isConsistent(input: List<State?>): Boolean {
-
-        if (input.contains(null)) {
-            return false
-        }
-
-        val circleCount = input.count { it == State.CIRCLE }
-
-        return circleCount == 0 || circleCount == input.count()
+    override fun checkFirstDiagonal(input: List<State>): Boolean {
+        val diagonal = listOf(0, 4, 8).mapNotNull { input.getOrNull(it) }
+        return isValid(diagonal)
     }
+
+    override fun checkSecondDiagonal(input: List<State>): Boolean {
+        val diagonal = listOf(2, 4, 6).mapNotNull { input.getOrNull(it) }
+        return isValid(diagonal)
+    }
+
+    private fun isValid(input: List<State>) = input.all { it == State.CIRCLE } || input.all { it == State.CROSS }
+
 }

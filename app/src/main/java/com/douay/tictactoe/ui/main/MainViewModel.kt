@@ -5,27 +5,16 @@ import androidx.databinding.ObservableField
 import androidx.lifecycle.ViewModel
 import com.douay.tictactoe.GridResult
 import com.douay.tictactoe.GridValidator
+import com.douay.tictactoe.Referee
 import com.douay.tictactoe.State
-import java.util.*
 
 class MainViewModel : ViewModel() {
 
-    companion object {
-
-        val EMPTY_GRID: List<ArrayList<State?>>
-            get() = listOf(
-                arrayListOf(null, null, null),
-                arrayListOf(null, null, null),
-                arrayListOf(null, null, null)
-            )
-    }
-
-    private var grid: List<ArrayList<State?>> = EMPTY_GRID
-
-    private val gridValidator = GridValidator();
+    private var grid: MutableList<State> = MutableList(9) { State.UNDEFINED }
 
     val imageRes = ObservableArrayMap<Int, Int>()
 
+    private val referee = Referee(GridValidator())
 
     val currentPlayer = ObservableField(State.CIRCLE)
 
@@ -37,16 +26,15 @@ class MainViewModel : ViewModel() {
 
     fun onCellClicked(pos: Int) {
 
-        if (imageRes[pos] != null) return
+        if (grid[pos] != State.UNDEFINED) return
 
-        val row = pos / 3
-        val column = pos % 3
+        currentPlayer.get()?.let {
+            grid[pos] = it
+            imageRes.setValueAt(pos, it.res)
+        } ?: return
 
-        grid[row][column] = currentPlayer.get()
-        imageRes.setValueAt(pos, currentPlayer.get()?.res)
-
-        when (gridValidator.isSuccess(grid)) {
-             GridResult.VICTORY -> {
+        when (referee.check(grid)) {
+            GridResult.VICTORY -> {
                 result.set("${currentPlayer.get()?.name} WIN !!!")
             }
             GridResult.IN_PROGRESS -> {
@@ -62,10 +50,10 @@ class MainViewModel : ViewModel() {
         currentPlayer.set(State.CIRCLE)
 
         for (i in 0..8) {
-            imageRes[i] = null
+            imageRes[i] = 0
         }
 
-        grid = EMPTY_GRID
+        grid = MutableList(9) { State.UNDEFINED }
 
         result.set("")
     }
